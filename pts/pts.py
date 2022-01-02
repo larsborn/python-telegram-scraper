@@ -3,6 +3,7 @@ import argparse
 import binascii
 import dataclasses
 import datetime
+import hashlib
 import json
 import logging
 import os
@@ -151,6 +152,7 @@ class ExtractedPost:
 @dataclasses.dataclass
 class ParsedPost:
     raw: ExtractedPost
+    content_sha256: str
     at_handles: List[str]
     external_urls: List[str]
     external_host_names: List[str]
@@ -343,6 +345,11 @@ class TelegramScraper:
         external_urls = list(self._beautiful_soup_utils.extract_urls(extracted_post.content))
         return ParsedPost(
             raw=extracted_post,
+            content_sha256=hashlib.sha256(b'|'.join(elem.encode('utf-8') if elem else b'' for elem in [
+                extracted_post.content,
+                extracted_post.img_src,
+                extracted_post.post_datetime.strftime('%Y-%m-%d %H:%M:%S'),
+            ])).hexdigest(),
             at_handles=self._beautiful_soup_utils.extract_at_handles(extracted_post.content),
             external_urls=external_urls,
             external_host_names=self._beautiful_soup_utils.extract_hostnames(external_urls),
