@@ -346,9 +346,8 @@ class TelegramScraper:
         return ParsedPost(
             raw=extracted_post,
             content_sha256=hashlib.sha256(b'|'.join(elem.encode('utf-8') if elem else b'' for elem in [
-                extracted_post.content,
-                extracted_post.img_src,
                 extracted_post.post_datetime.strftime('%Y-%m-%d %H:%M:%S'),
+                extracted_post.content,
             ])).hexdigest(),
             at_handles=self._beautiful_soup_utils.extract_at_handles(extracted_post.content),
             external_urls=external_urls,
