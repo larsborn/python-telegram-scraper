@@ -16,6 +16,7 @@ from collections import Counter
 from typing import Optional, Iterator, Dict, Callable, List, Type
 
 import nsq
+import pytz as pytz
 import requests
 import requests.adapters
 import requests.packages.urllib3.util.retry
@@ -433,7 +434,7 @@ def main():
                 for post in scraper.posts(response):
                     if args.storage == 'nsq':
                         handler.publish_dict(args.nsq_topic, post)
-                    if last_crawl_timestamp is not None and post.raw.post_datetime < last_crawl_timestamp:
+                    if last_crawl_timestamp is not None and pytz.UTC.localize(post.raw.post_datetime) < last_crawl_timestamp:
                         break_crawl = True
                         break
                     logger.debug(json.dumps(post, cls=CustomJSONEncoder))
