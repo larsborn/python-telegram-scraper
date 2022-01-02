@@ -409,10 +409,11 @@ def main():
                     file_name = binascii.hexlify(response.url.encode('utf-8')).decode('utf-8') + '.json'
                     with open(os.path.join(args.directory, file_name), 'w') as fp:
                         json.dump(response, fp, indent=4, cls=CustomJSONEncoder)
-                else:
-                    handler.publish_dict(args.nsq_topic_crawled_content, response)
+
                 for post in scraper.posts(response):
-                    logger.debug(post)
+                    if args.storage == 'nsq':
+                        handler.publish_dict(args.nsq_topic_crawled_content, post)
+                    logger.debug(json.dumps(post, cls=CustomJSONEncoder))
         elif args.command == 'extract':
             at_handles = Counter()
             host_names = Counter()
