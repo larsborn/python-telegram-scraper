@@ -1,0 +1,3 @@
+requests
+pynsq
+beautifulsoup4
