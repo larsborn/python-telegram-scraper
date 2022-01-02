@@ -377,7 +377,7 @@ def main():
     )
     parser.add_argument('--strategy', choices=['store', 'preview'], default='store')
     parser.add_argument('--nsqd-tcp-address', default=os.environ.get('NSQD_TCP_ADDRESS', '127.0.0.1'))
-    parser.add_argument('--nsqd-port', default=os.environ.get('NSQ_WRITE_PORT'))
+    parser.add_argument('--nsqd-port', default=os.environ.get('NSQ_WRITE_PORT', 4151))
     parser.add_argument('--nsq-topic', default=os.environ.get('NSQ_TOPIC_CRAWLED_CONTENT'))
     subparsers = parser.add_subparsers(dest='command')
     crawl_channel_parser = subparsers.add_parser('crawl_channel')
