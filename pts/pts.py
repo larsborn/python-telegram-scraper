@@ -440,9 +440,12 @@ def main():
 
                 if break_crawl:
                     break
+
             if args.record_last_crawl_file_name:
+                last_crawl_data[args.channel_name] = {'timestamp': crawl_start_timestamp.isoformat()}
                 with open(args.record_last_crawl_file_name, 'w') as fp:
-                    json.dump({'timestamp': crawl_start_timestamp}, fp, cls=CustomJSONEncoder)
+                    json.dump(last_crawl_data, fp)
+
         elif args.command == 'extract':
             at_handles = Counter()
             host_names = Counter()
