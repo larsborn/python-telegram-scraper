@@ -381,6 +381,7 @@ def main():
     subparsers = parser.add_subparsers(dest='command')
     crawl_channel_parser = subparsers.add_parser('crawl_channel')
     crawl_channel_parser.add_argument('channel_name')
+    crawl_channel_parser.add_argument('--record-last-crawl-file-name')
     extract_parser = subparsers.add_parser('extract')
     extract_parser.add_argument('--channel_name')
 
@@ -410,16 +411,38 @@ def main():
     )
     try:
         if args.command == 'crawl_channel':
+            crawl_start_timestamp = datetime.datetime.now()
+            last_crawl_timestamp = None
+            if args.record_last_crawl_file_name:
+                if os.path.exists(args.record_last_crawl_file_name):
+                    with open(args.record_last_crawl_file_name, 'r') as fp:
+                        last_crawl_data = json.load(fp)
+                else:
+                    last_crawl_data = {}
+                last_crawl = last_crawl_data.get(args.channel_name)
+                if last_crawl is not None:
+                    last_crawl_timestamp = datetime.datetime.fromisoformat(last_crawl.get('timestamp'))
+
             for response in scraper.crawl(args.channel_name):
                 if args.storage == 'file':
                     file_name = binascii.hexlify(response.url.encode('utf-8')).decode('utf-8') + '.json'
                     with open(os.path.join(args.directory, file_name), 'w') as fp:
                         json.dump(response, fp, indent=4, cls=CustomJSONEncoder)
 
+                break_crawl = False
                 for post in scraper.posts(response):
                     if args.storage == 'nsq':
                         handler.publish_dict(args.nsq_topic, post)
+                    if last_crawl_timestamp is not None and post.raw.post_datetime < last_crawl_timestamp:
+                        break_crawl = True
+                        break
                     logger.debug(json.dumps(post, cls=CustomJSONEncoder))
+
+                if break_crawl:
+                    break
+            if args.record_last_crawl_file_name:
+                with open(args.record_last_crawl_file_name, 'w') as fp:
+                    json.dump({'timestamp': crawl_start_timestamp}, fp, cls=CustomJSONEncoder)
         elif args.command == 'extract':
             at_handles = Counter()
             host_names = Counter()
