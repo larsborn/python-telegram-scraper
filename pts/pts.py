@@ -409,6 +409,7 @@ def main():
         elif args.command == 'extract':
             at_handles = Counter()
             host_names = Counter()
+            hour_of_day = Counter()
             for file_name in os.listdir(args.directory):
                 with open(os.path.join(args.directory, file_name), 'r') as fp:
                     file_content = json.load(fp)
@@ -423,13 +424,22 @@ def main():
                     for host_name in post.external_host_names:
                         host_names[host_name] += 1
 
-            print('# @handles')
+                    hour_of_day[post.raw.post_datetime.strftime('%H')] += 1
+
+            print('handles')
+            print('---')
             for at_handle, count in at_handles.most_common():
                 print(at_handle, count)
             print('')
-            print('# domains')
+            print('domains')
+            print('---')
             for host_name, count in host_names.most_common():
                 print(host_name, count)
+            print('')
+            print('time of day')
+            print('---')
+            for hour, count in sorted(hour_of_day.keys()):
+                print(hour, count)
         else:
             raise Exception(f'Unknown command: {args.command}')
     except ScraperException as e:
