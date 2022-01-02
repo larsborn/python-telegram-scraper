@@ -148,6 +148,7 @@ class ExtractedPost:
     post_datetime: datetime.datetime
     img_src: Optional[str]
     content: str
+    forwarded_from_handle: Optional[str]
 
 
 @dataclasses.dataclass
@@ -295,6 +296,16 @@ class PreviewStrategy(CrawlStrategy):
                 continue
 
             url = f'{self.BASE_URL}/s/{div.attrs["data-post"]}'
+            forwarded_from_handle = None
+            for forward_div in div.select('div[class*="tgme_widget_message_forwarded_from"]'):
+                for a in forward_div.find_all('a'):
+                    href = a.attrs['href']
+                    if href.startswith('https://t.me/'):
+                        forwarded_from_handle = href.split('/')[3]
+                        if forwarded_from_handle == 'like':
+                            forwarded_from_handle = None
+                        else:
+                            break
 
             img_src = None
             for a in div.find_all('a', class_='tgme_widget_message_photo_wrap'):
@@ -323,8 +334,8 @@ class PreviewStrategy(CrawlStrategy):
                 url=url,
                 img_src=img_src,
                 post_datetime=post_datetime,
-                content=content.strip()
-                if len(text_divs) == 1 else '',
+                content=content.strip() if len(text_divs) == 1 else '',
+                forwarded_from_handle=forwarded_from_handle
             )
 
 
